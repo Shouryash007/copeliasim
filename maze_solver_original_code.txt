@@ -1,0 +1,46 @@
+function sysCall_init()
+    leftMotor = sim.getObject("/robot_base/left_motor")
+    rightMotor = sim.getObject("/robot_base/right_motor")
+    
+    leftSensor = sim.getObject("/robot_base/left_pr_sensor")
+    frontSensor = sim.getObject("/robot_base/front_pr_sensor")
+    rightSensor = sim.getObject("/robot_base/right_pr_sensor")
+    
+    maxSpeed = 10
+end
+
+function sysCall_actuation()
+
+    resultL, distanceL = sim.readProximitySensor(leftSensor)
+    resultF, distanceF = sim.readProximitySensor(frontSensor)
+    resultR, distanceR = sim.readProximitySensor(rightSensor)
+
+    -- Default: go forward
+    leftSpeed = maxSpeed
+    rightSpeed = maxSpeed
+
+    -- Wall in front ? turn right
+    if resultF > 0 then
+        leftSpeed = -maxSpeed
+        rightSpeed = maxSpeed
+
+    -- Left wall exists ? go straight
+    elseif resultL > 0 then
+        leftSpeed = maxSpeed
+        rightSpeed = maxSpeed
+
+    -- No left wall but right wall exists ? curve left
+    elseif resultR > 0 then
+        leftSpeed = -maxSpeed
+        rightSpeed = maxSpeed
+
+    -- No walls anywhere ? search for wall (turn left slowly)
+    else
+        leftSpeed = 0
+        rightSpeed = maxSpeed
+    end
+
+    sim.setJointTargetVelocity(leftMotor, leftSpeed)
+    sim.setJointTargetVelocity(rightMotor, rightSpeed)
+
+end
